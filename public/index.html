@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Environment Variables Example</title>
+</head>
+<body>
+    <script>
+        if (!process.env.MY_ENV_VARIABLE) {
+            console.error("Environment variable MY_ENV_VARIABLE is not defined.");
+        } else {
+            document.write("The value of MY_ENV_VARIABLE is: " + process.env.MY_ENV_VARIABLE);
+        }
+    </script>
+</body>
+</html>
