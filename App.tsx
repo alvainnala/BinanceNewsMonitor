@@ -11,31 +11,49 @@ interface INews {
 const MainComponent: React.FC = () => {
   const [newsList, setNewsList] = useState<INews[]>([]);
   const [selectedCoin, setSelectedCoin] = useState<string>('BTC');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchNews = async () => {
-      const API_KEY = process.env.REACT_APP_BINANCE_API_KEY;
-      const url = `https://api.binance.com/api/v3/news?coin=${selectedCoin}&key=${API_KEY}`;
+  // Function to fetch news from the Binance API
+  const fetchNews = async () => {
+    setIsLoading(true);
+    setError(null);
+    const API_KEY = process.env.REACT_APP_BINANCE_API_KEY;
+    const url = `https://api.binance.com/api/v3/news?coin=${selectedCoin}&key=${API_KEY}`;
 
-      try {
-        const response = await fetch(url);
-        const data = await response.json();
-        setNews&M#List(data);
-      } catch (error) {
-        console.error("Failed to fetch news:", error);
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('Something went wrong!');
       }
-    };
+      const data = await response.json();
+      setNewsList(data);
+    } catch (error) {
+      setError("Failed to fetch news: " + error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  // Effect hook to fetch news when the selectedCoin changes or on component mount
+  useEffect(() => {
     fetchNews();
-  }, [selectedCoin]); 
+  }, [selectedCoin]);
+
+  const refreshNews = () => {
+    fetchNews();
+  };
 
   return (
     <div>
       <h1>Binance News Monitor</h1>
-      <CoinSelector selectedCoin={selected</Coin&>electedCoin} />
-      <NewsList newsList={newsList} />
+      <CoinSelector selectedCoin={selectedCoin} setSelectedCoin={setSelectedCoin} />
+      <button onClick={refreshNews} disabled={isLoading}>Refresh News</button>
+      {isLoading && <p>Loading...</p>}
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {!isLoading && !error && <NewsList newsList={newsList} />}
     </div>
   );
 };
 
-export default Main$&ponent;
+export default MainComponent;
