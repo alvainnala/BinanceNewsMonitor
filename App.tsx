@@ -8,13 +8,23 @@ interface INews {
   content: string;
 }
 
+interface INewsCache {
+  [key: string]: INews[];
+}
+
 const MainComponent: React.FC = () => {
+  const [newsCache, setNewsCache] = useState<INewsCache>({});
   const [newsList, setNewsList] = useState<INews[]>([]);
   const [selectedCoin, setSelectedCoin] = useState<string>('BTC');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchNews = async () => {
+    if (newsCache[selectedCoin]) {
+      setNewsList(newsCache[selectedCoin]);
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     
@@ -28,8 +38,12 @@ const MainComponent: React.FC = () => {
       }
       const data = await response.json();
       setNewsList(data);
+      setNewsCache(prevCache => ({
+        ...prevCache,
+        [selectedCoin]: data
+      }));
     } catch (error) {
-      setError(`Failed to fetch news: ${error.message}`);
+      setError(`Failed to fetch news: ${(error as Error).message}`);
     } finally {
       setIsLoading(false);
     }
@@ -40,6 +54,11 @@ const MainComponent: React.FC = () => {
   }, [selectedCoin]);
 
   const refreshNews = () => {
+    setNewsCache(prevCache => {
+      const newCache = { ...prevCache };
+      delete newCache[selectedCoin];
+      return newCache;
+    });
     fetchNews();
   };
 
