@@ -9,9 +9,10 @@ interface NewsArticle {
 
 interface NewsListProps {
   articles: NewsArticle[];
+  error?: string; // Optional error property
 }
 
-const NewsList: React.FC<NewsListProps> = ({ articles }) => {
+const NewsList: React.FC<NewsListProps> = ({ articles, error }) => {
   // State to hold the search term
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -19,6 +20,16 @@ const NewsList: React.FC<NewsListProps> = ({ articles }) => {
   const filteredArticles = articles.filter((article) =>
     article.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Early return to show error message if an error occurs
+  if (error) {
+    return (
+      <div>
+        <h2>Error Fetching Articles</h2>
+        <p>{error}</p> {/* Display the error message */}
+      </div>
+    );
+  }
 
   return (
     <div>
