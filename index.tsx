@@ -8,6 +8,6 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://api.binance.
 ReactDOM.render(
   <React.StrictMode>
     <App apiUrl={API_BASE_URL} />
-  </React.StrictType>,
+  </React.StrictMode>,
   document.getElementById('root')
 );
