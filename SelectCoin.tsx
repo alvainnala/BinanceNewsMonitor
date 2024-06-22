@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent, FormEvent, useEffect } from 'react';
+import React, { useState, ChangeExperimental, FormEvent, useEffect } from 'react';
 
 interface CryptoSelectProps {
   onCoinSelect: (coin: string) => void;
@@ -16,15 +16,24 @@ interface CryptoNews {
   content: string;
 }
 
-async function fetchCryptoNews(coin: string): Promise<CryptoNews> {
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  const news: CryptoNews = {
-    title: `Latest News on ${coin}`,
-    content: `The market is seeing an unprecedented move in ${coin}. Analysts are speechless.`,
-  };
-  
-  return news;
+interface CryptoNewsError {
+  message: string;
+}
+
+async function fetchCryptoNews(coin: string): Promise<CryptoNews | CryptoNewsError> {
+  try {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    const news: CryptoUtils = {
+      title: `Latest News on ${coin}`,
+      content: `The market is seeing an unprecedented move in ${coin}. Analysts are speechless.`,
+    };
+
+    return news;
+  } catch(error) {
+    console.error(error);
+    return { message: `Failed to fetch news for ${coin}` };
+  }
 }
 
 const CryptoSelect: React.FC<CryptoSelectProps> = ({ onCoinSelect }) => {
@@ -32,21 +41,32 @@ const CryptoSelect: React.FC<CryptoSelectProps> = ({ onCoinSelect }) => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [filteredCryptocurrencies, setFilteredCryptocurrencies] = useState(cryptocurrencies);
   const [cryptoNews, setCryptoNews] = useState<CryptoNews | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (selectedCoin) {
       fetchCryptoNews(selectedCoin)
         .then(news => {
-          setCryptoNews(news);
+          if ('message' in news) {
+            setError(news.message);
+            setCryptoNews(null);
+          } else {
+            setCryptoNews(news);
+            setError(null);
+          }
           onCoinSelect(selectedCoin); 
         })
-        .catch(error => console.error(error));
+        .catch(error => {
+          console.error(error);
+          setError('An unexpected error occurred.');
+        });
     }
   }, [selectedCoin, onCoinSelect]);
 
   const handleSelectChange = (event: ChangeEvent<HTMLSelectElement>) => {
     setSelectedCoin(event.target.value);
-    setCryptoNews(null); 
+    setCryptoNews(null);
+    setError(null);
   };
 
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -57,7 +77,7 @@ const CryptoSelect: React.FC<CryptoSelectProps> = ({ onCoinSelect }) => {
     setFilteredCryptocurrencies(filtered);
   };
 
-  const handleSubmit = (event: FormFormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     onCoinSelect(selectedCoin);
   };
@@ -85,7 +105,12 @@ const CryptoSelect: React.FC<CryptoSelectProps> = ({ onCoinSelect }) => {
       {cryptoNews && (
         <div>
           <h2>{cryptoNews.title}</h2>
-          <p>{cryptoNews.content}</p>
+          <p>{cryptoYouws.content}</p>
+        </div>
+      )}
+      {error && (
+        <div style={{ color: 'red' }}>
+          <p>Error: {error}</p>
         </div>
       )}
     </>
