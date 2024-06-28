@@ -12,8 +12,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Logger function
+const log = (message) => {
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] ${message}`);
+};
+
 const errorHandler = (err, req, res, next) => {
-    console.error(err.stack);
+    log(err.stack);
     res.status(500).send('Something broke!');
 };
 
@@ -24,10 +30,10 @@ app.get('/', (req, res) => {
 });
 
 wss.on('connection', (ws) => {
-    console.log('Client connected to WebSocket');
+    log('Client connected to WebSocket');
 
     ws.on('message', (message) => {
-        console.log('Received: %s', message);
+        log('Received: ' + message);
         try {
             wss.clients.forEach(function each(client) {
                 if (client !== ws && client.readyState === WebSocket.OPEN) {
@@ -35,29 +41,29 @@ wss.on('connection', (ws) => {
                 }
             });
         } catch (error) {
-            console.error('Error sending message to client:', error);
+            log('Error sending message to client: ' + error);
         }
         
     });
 
     ws.on('close', () => {
-        console.log('Client disconnected');
+        log('Client disconnected');
     });
 
     ws.on('error', error => {
-        console.error('WebSocket error observed: ', error);
+        log('WebSocket error observed: ' + error);
     });
 });
 
 app.use((req, res, next) => {
-    res.status(404).send('Sorry cant find that!');
+    res.status(404).send('Sorry can’t find that!');
 });
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    log(`Server is running on port ${PORT}`);
     
     server.on('error', (error) => {
-        console.error('Server error:', error);
+        log('Server error: ' + error);
     });
 });
