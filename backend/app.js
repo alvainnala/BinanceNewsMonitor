@@ -12,10 +12,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Logger function
+const logTemplate = (message) => `[${new Date().toISOString()}] ${message}`;
 const log = (message) => {
-    const timestamp = new Date().toISOString();
-    console.log(`[${timestamp}] ${message}`);
+    console.log(logTemplate(message));
 };
 
 const errorHandler = (err, req, res, next) => {
@@ -34,23 +33,23 @@ wss.on('connection', (ws) => {
 
     ws.on('message', (message) => {
         log('Received: ' + message);
+        const preparedMessage = JSON.stringify({ data: message });
         try {
-            wss.clients.forEach(function each(client) {
+            wss.clients.forEach((client) => {
                 if (client !== ws && client.readyState === WebSocket.OPEN) {
-                    client.send(message);
+                    client.send(preparedMessage);
                 }
             });
         } catch (error) {
             log('Error sending message to client: ' + error);
         }
-        
     });
 
     ws.on('close', () => {
         log('Client disconnected');
     });
 
-    ws.on('error', error => {
+    ws.on('error', (error) => {
         log('WebSocket error observed: ' + error);
     });
 });
