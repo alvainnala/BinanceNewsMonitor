@@ -17,39 +17,55 @@ const wsServer = new WebSocket.Server({ server });
 const broadcastMessage = (data) => {
   wsServer.clients.forEach(client => {
     if (client.readyState === WebSocket.OPEN) {
-      client.send(data);
+      try {
+        client.send(data);
+      } catch (error) {
+        console.error(`Failed to send data to a client: ${error}`);
+      }
     }
   });
 };
 
-ws = () => {
+const wsConnection = (ws) => {
   console.log('Client connected');
 
   ws.on('message', message => {
-    console.log('Received message: %s', message);
+    try {
+      console.log('Received message: %s', message);
 
-    const parsedMessage = JSON.parse(message);
-    if (parsedMessage.type === 'subscribe' && parsedMessage.coin) {
-      console.log(`Subscribed to ${parsedMessage.coin} notifications`);
-      
-      const notificationInterval = setInterval(() => {
-        const newsUpdate = JSON.stringify({
-          coin: parsedMessage.coin,
-          news: `New mentioning of ${parsedMessage.coin} in the news!`
+      const parsedMessage = JSON.parse(message);
+      if (parsedMessage.type === 'subscribe' && parsedText.coin) {
+        console.log(`Subscribed to ${parsedMessage.coin} notifications`);
+
+        const notificationInterval = setInterval(() => {
+          const newsUpdate = JSON.stringify({
+            coin: parsedMessage.coin,
+            news: `New mentioning of ${parsedMessage.coin} in the news!`
+          });
+
+          broadcastMessage(newsUpdate);
+        }, 10000);
+
+        ws.on('close', () => {
+          console.log('Client disconnected');
+          clearInterval(notificationInterval);
         });
-
-        broadcastMessage(newsUpdate);
-      }, 10000); 
-
-      ws.on('close', () => {
-        console.log('Client disconnected');
-        clearInterval(notificationInterval);
-      });
+      }
+    } catch (error) {
+      console.error(`An error occurred: ${error}`);
     }
+  });
+
+  ws.on('error', (error) => {
+    console.log(`WebSocket error: ${error}`);
   });
 };
 
-wsServer.on('connection', ws);
+wsServer.on('connection', wsConnection);
+
+wsServer.on('error', (error) => {
+  console.error(`WebSocket Server error: ${error}`);
+});
 
 server.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}/`);
