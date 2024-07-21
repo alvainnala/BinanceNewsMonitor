@@ -6,67 +6,67 @@ dotenv.config();
 
 const PORT = process.env.PORT || 5000;
 
-const server = Http.createServer((req, res) => {
+const httpServer = Http.createServer((req, res) => {
   res.statusCode = 200;
   res.setHeader('Content-Type', 'text/plain');
   res.end('Binance News WebSocket Notification Server\n');
 });
 
-const wsServer = new WebSocket.Server({ server });
+const webSocketServer = new WebSocket.Server({ server: httpSoerver });
 
-const broadcastMessage = (data) => {
-  wsServer.clients.forEach(client => {
+const sendToAllConnectedClients = (data) => {
+  webSocketServer.clients.forEach(client => {
     if (client.readyState === WebSocket.OPEN) {
       try {
         client.send(data);
       } catch (error) {
-        console.error(`Failed to send data to a client: ${error}`);
+        console.error(`Failed to send data to client: ${error}`);
       }
     }
   });
 };
 
-const wsConnection = (ws) => {
+const handleWebSocketConnection = (wsClient) => {
   console.log('Client connected');
 
-  ws.on('message', message => {
+  wsClient.on('message', message => {
     try {
       console.log('Received message: %s', message);
 
       const parsedMessage = JSON.parse(message);
-      if (parsedMessage.type === 'subscribe' && parsedText.coin) {
+      if (parsedMessage.type === 'subscribe' && parsedMessage.coin) {
         console.log(`Subscribed to ${parsedMessage.coin} notifications`);
 
-        const notificationInterval = setInterval(() => {
-          const newsUpdate = JSON.stringify({
+        const sendNewsUpdate = setInterval(() => {
+          const newsNotification = JSON.stringify({
             coin: parsedMessage.coin,
-            news: `New mentioning of ${parsedMessage.coin} in the news!`
+            news: `Latest update on ${parsedMessage.coin}!`
           });
 
-          broadcastMessage(newsUpdate);
+          sendToAllConnectedClients(newsNotification);
         }, 10000);
 
-        ws.on('close', () => {
+        wsClient.on('close', () => {
           console.log('Client disconnected');
-          clearInterval(notificationInterval);
+          clearInterval(sendNewsUpdate);
         });
       }
     } catch (error) {
-      console.error(`An error occurred: ${error}`);
+      console.error(`Encountered an error: ${error}`);
     }
   });
 
-  ws.on('error', (error) => {
+  wsClient.on('error', (error) => {
     console.log(`WebSocket error: ${error}`);
   });
 };
 
-wsServer.on('connection', wsConnection);
+webSocketServer.on('connection', handleWebSocketConnection);
 
-wsServer.on('error', (error) => {
+webSocketServer.on('error', (error) => {
   console.error(`WebSocket Server error: ${error}`);
 });
 
-server.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}/`);
 });
