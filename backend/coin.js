@@ -1,0 +1,35 @@
+const mongoose = require('mongoose');
+require('dotenv').config();
+
+mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('MongoDB Connected'))
+  .catch(err => console.error(err));
+
+const coinSchema = new mongoose.Schema({
+  name: String,
+  symbol: String,
+  isSelected: { type: Boolean, default: false }
+});
+
+const Coin = mongoose.model('Coin', coinSchema);
+
+async function setSelectedCoin(coinSymbol) {
+  try {
+    await Coin.updateMany({}, { isSelected: false });
+    const result = await Coin.findOneAndUpdate({ symbol: coinSymbol }, { isSelected: true }, { new: true });
+    return result;
+  } catch (error) {
+    console.error('Error setting selected coin:', error);
+  }
+}
+
+async function getSelectedCoin() {
+  try {
+    const selectedCoin = await Coin.findOne({ isSelected: true });
+    return selectedCoin;
+  } catch (error) {
+    console.error('Error fetching selected coin:', error);
+  }
+}
+
+module.exports = { setSelectedCoin, getSelectedCoin };
