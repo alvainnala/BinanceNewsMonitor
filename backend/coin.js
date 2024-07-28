@@ -16,12 +16,12 @@ const Coin = mongoose.model('Coin', coinSchema);
 async function setSelectedCoin(coinSymbol) {
   try {
     await Coin.updateMany({}, { isSelected: false });
+
     const result = await Coin.findOneAndUpdate({ symbol: coinSymbol }, { isSelected: true }, { new: true });
-    
     if (!result) {
       throw new Error(`Coin with symbol ${coinSymbol} not found.`);
     }
-    
+
     return result;
   } catch (error) {
     console.error('Error setting selected coin:', error);
@@ -29,14 +29,14 @@ async function setSelectedCoin(coinSymbol) {
   }
 }
 
-async function getSelectedDBConnections() {
+async function getSelectedCoin() {
   try {
     const selectedCoin = await Coin.findOne({ isSelected: true });
-    
+
     if (!selectedCoin) {
       throw new Error("No selected coin found.");
     }
-    
+
     return selectedCoin;
   } catch (error) {
     console.error('Error fetching selected coin:', error);
